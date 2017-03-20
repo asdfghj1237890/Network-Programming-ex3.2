@@ -14,7 +14,7 @@ void str_cli(FILE *fp,int sockfd){
 	while(fgets(sendline,MAXLINE,fp) != NULL){
 		write(sockfd,sendline,strlen(sendline));
 		if(read(sockfd,recvline,MAXLINE) == 0){
-			printf("str_cli:server terminated prematurely");
+			printf("str_cli:server terminated prematurely\n");
 			exit(0);
 		}
 		fputs(recvline,stdout);
@@ -24,7 +24,9 @@ int main(int argc,char **argv){
 	int sockfd,sockfd1,sockfd2,sockfd3,sockfd4,sockfd5;
 	struct sockaddr_in servaddr;
 	if(argc!=3)
-		printf("usage:tcpcli<IPaddress> <Port>");
+		printf("usage:tcpcli<IPaddress> <Port>\n");
+
+	/*5 sockfd */ 
 	sockfd1 = socket(AF_INET,SOCK_STREAM,0);
 	sockfd2 = socket(AF_INET,SOCK_STREAM,0);
 	sockfd3 = socket(AF_INET,SOCK_STREAM,0);
@@ -34,11 +36,14 @@ int main(int argc,char **argv){
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(atoi(argv[2]));
 	inet_pton(AF_INET,argv[1],&servaddr.sin_addr);
+
+	/*5 connection same time */
 	connect(sockfd1,(struct sockaddr*)&servaddr,sizeof(servaddr));
 	connect(sockfd2,(struct sockaddr*)&servaddr,sizeof(servaddr));
 	connect(sockfd3,(struct sockaddr*)&servaddr,sizeof(servaddr));
 	connect(sockfd4,(struct sockaddr*)&servaddr,sizeof(servaddr));
 	connect(sockfd5,(struct sockaddr*)&servaddr,sizeof(servaddr));
+
 	str_cli(stdin,sockfd);
 	exit(0);
 }

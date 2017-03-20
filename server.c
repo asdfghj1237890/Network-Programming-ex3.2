@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <string.h>
 
 # define MAXLINE  4096
 
@@ -41,21 +42,28 @@ Sigfunc *signal(int signo, Sigfunc *func){
 void sig_chld(int signo){
 	pid_t pid;
 	int stat;
-	while((pid = waitpid(-1,&stat,WUNTRACED))>0){
-		
-		printf("child %dd terminated \n",pid);
+	while(pid == 0){
+		printf("Zombie child ing\n");
 	}
+	/*while((pid = waitpid(-1,&stat,WUNTRACED))>0){*/
+	wait(&stat);
+		//printf("child %d terminated \n",pid);
+
+	
 }
 void str_echo(int sockfd){
 	ssize_t n;
+	int buf_byte;
 	char buf[MAXLINE];
 	again:
-		while((n = read(sockfd,buf,MAXLINE))>0)
-			write(sockfd,buf,n);
-		if(n<0 && errno == EINTR)
-			goto again;
-		else if (n<0)
-			printf("str_echo:read error");
+		while((buf_byte = read(sockfd,buf,MAXLINE))>0){
+			buf[buf_byte] = '\0';
+			write(sockfd,buf,strlen(buf));
+		}
+		if(buf_byte<0 && errno == EINTR)  /* interrupted by a signal before any data was read*/
+			goto again; //ignore EITNER
+		else if (buf_byte<0)
+			printf("str_echo:read error\n");
 }
 int main(int argc,char **argv){
 	int listenfd,connfd;
@@ -79,7 +87,7 @@ int main(int argc,char **argv){
 			if(errno == EINTR)
 				continue;
 			else
-				printf("accept error");		
+				printf("accept error\n");		
 		}
 		ip = inet_ntoa(cliaddr.sin_addr);
 		printf("connection from %s port:%d \n",ip,cliaddr.sin_port);
